@@ -5954,7 +5954,11 @@ export function createRelay(opts?: {
         'heapCapMB',
         heapCapMB,
         'rooms',
-        store.roomCount
+        store.roomCount,
+        'extMB',
+        Math.round(m.external / 1048576),
+        'abMB',
+        Math.round(m.arrayBuffers / 1048576)
       )
       if (heapMB > heapCapMB * 0.8) {
         if (!warned) {
