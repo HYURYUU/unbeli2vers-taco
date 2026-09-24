@@ -13,6 +13,7 @@ import {
 import { join, relative, sep } from 'node:path'
 import { randomUUID } from 'node:crypto'
 import { getHeapStatistics } from 'node:v8'
+import { monitorEventLoopDelay } from 'node:perf_hooks'
 import { Server } from 'socket.io'
 import type {
   CharIdentityReq,
@@ -5967,6 +5968,26 @@ export function createRelay(opts?: {
       }
     }, 30000)
     diag.unref()
+
+    // 이벤트 루프 지연 측정 — 핑/퐁이 밀려 ping timeout 나는지 확인용
+    const loopDelay = monitorEventLoopDelay({ resolution: 20 })
+    loopDelay.enable()
+    const loopDiag = setInterval(() => {
+      log(
+        'loop',
+        'p50',
+        Math.round(loopDelay.percentile(50) / 1e6),
+        'ms',
+        'p99',
+        Math.round(loopDelay.percentile(99) / 1e6),
+        'ms',
+        'max',
+        Math.round(loopDelay.max / 1e6),
+        'ms'
+      )
+      loopDelay.reset()
+    }, 10000)
+    loopDiag.unref()    
     httpServer.on('close', () => clearInterval(diag))
   }
 
