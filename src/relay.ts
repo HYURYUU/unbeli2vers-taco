@@ -3486,6 +3486,7 @@ export function createRelay(opts?: {
       // 큰 미디어는 /asset(HTTP)로 빠져 이벤트 루프가 길게 막히지 않으므로 짧은 타임아웃이 안전하다.
       pingInterval: 20000,
       pingTimeout: 30000,
+      perMessageDeflate: false,
       // 세션 복구 — 잠깐 끊긴 재접속(2분 내)은 방·놓친 이벤트를 자동 복원해 대용량 스냅샷 재전송 없이 이어간다.
       // 인증 미들웨어는 재실행(skipMiddlewares:false)해 토큰을 매 재접속마다 재검증.
       connectionStateRecovery: {
