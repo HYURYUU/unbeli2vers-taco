@@ -40,7 +40,10 @@ export function createCharacterStore(opts?: { dataDir?: string; persist?: boolea
       try {
         const f = fileFor(accountId)
         if (existsSync(f)) {
-          const data = JSON.parse(readFileSync(f, 'utf8')) as { characters?: CharacterRecord[] }
+          const t0 = Date.now()
+          const raw = readFileSync(f, 'utf8')
+          const data = JSON.parse(raw) as { characters?: CharacterRecord[] }
+          console.log('[characters] load', accountId.slice(0, 8), 'approxMB', Math.round(raw.length / 1048576), 'ms', Date.now() - t0)
           if (Array.isArray(data.characters)) {
             for (const c of data.characters) if (c && typeof c.id === 'string' && c.id) m.set(c.id, c)
           }
@@ -59,8 +62,12 @@ export function createCharacterStore(opts?: { dataDir?: string; persist?: boolea
       mkdirSync(charDir, { recursive: true })
       const f = fileFor(accountId)
       const tmp = f + '.tmp'
-      writeFileSync(tmp, JSON.stringify({ characters: [...m.values()] }, null, 2), 'utf8') // 원자적(임시→rename)
+      const t0 = Date.now()
+      const json = JSON.stringify({ characters: [...m.values()] })
+      writeFileSync(tmp, json, 'utf8')
       renameSync(tmp, f)
+      const ms = Date.now() - t0
+      console.log('[characters] flush', accountId.slice(0, 8), 'chars', m.size, 'approxMB', Math.round(json.length / 1048576), 'ms', ms)
     } catch (e) {
       console.error(`[characters] ${accountId} 저장 실패:`, e)
     }
